@@ -109,21 +109,31 @@ Notes
   is not implemented.
 
 ## Waveforms (GTKWave)
-The waveform is the CI VCD [`waveforms/tb_i2c_system_stage1_seed1.vcd`](waveforms/tb_i2c_system_stage1_seed1.vcd) (stage 1,
-tests T1-T10, 0 to 310 us). Screenshots below show the same signals in each view: `scl`, `sda`, `m_sda_oe`, `m_scl_oe`,
-`s_sda_oe`, `s_scl_oe` (1 = that device pulls the line low) and the monitor's `evt_kind` / `evt_val` / `evt_nack`.
+Captured in GTKWave from the CI VCD [`waveforms/tb_i2c_system_stage1_seed1.vcd`](waveforms/tb_i2c_system_stage1_seed1.vcd)
+(stage 1, tests T1-T10, 0 to 310 us). Signals shown: `clk`, `rst_n`, `scl`, `sda`, `m_sda_oe` / `s_sda_oe` (master / slave pulling
+SDA low), `m_scl_oe` / `s_scl_oe`, the monitor's `evt_kind` (binary: 001 START, 010 repeated START, 011 STOP, 100 byte),
+`evt_val` (hex byte) and `evt_nack` (1 = NACK), plus `cmd_valid`, `done`, `busy`. The `rst_n` pulses between tests are the
+testbench's system resets. Stage 1 uses the fast simulation configuration (about 0.84 us per bit); the 100 kHz timing is
+checked separately in T31. Event markers (`evt_*`) update when the monitor has decoded the item, a byte at its 9th clock.
 
-![Write transaction](waveforms/gtkwave_i2c_write_txn.png)
-*T8 write, 120-145 us: START, address byte 0xA0 (0x50 + write) ACKed by the slave, register pointer 0x00, data 0x5A, STOP. The
-slave pulls SDA low during every 9th clock (ACK); SDA changes only while SCL is low except for START and STOP.*
+![Basic START, address, read and STOP](waveforms/gtkwave_i2c_basic_start_stop_read.png)
+*60-100 us (T3, T5): an address-only write (START, 0xA0, STOP), a second one, then a read: START, address 0xA1, one data byte
+(0x00) answered by a master NACK (`evt_nack` pulse), STOP. The slave pulls SDA low (`s_sda_oe`) for each ACK and for read data.*
 
-![Repeated START read](waveforms/gtkwave_i2c_repeated_start_read.png)
-*T8 read-back, 145-179 us: START, address 0xA0, pointer 0x00, repeated START (no STOP in between), address 0xA1 (read), data 0x5A
-returned by the slave, master NACK on the last byte (master releases SDA in the 9th clock), STOP.*
+![Address NACK and register write](waveforms/gtkwave_i2c_address_nack_write.png)
+*80-170 us (T5-T8): addresses 0xA2 and 0xE1 do not match the slave, so SDA stays high in the 9th clock and `evt_nack` pulses
+(NACK); then the T8 write: START, 0xA0 (ACK), pointer 0x00, data 0x5A, STOP, and the start of the read-back (repeated START at
+about 162 us).*
 
-![Address NACK](waveforms/gtkwave_i2c_address_nack.png)
-*T7, 100-109 us: address 0xA2 does not match the slave (0xA0/0xA1 are its write/read addresses), so SDA stays high in the 9th clock
-(NACK) and the master ends the transaction with STOP.*
+![Repeated START read-back](waveforms/gtkwave_i2c_repeated_start_readback.png)
+*170-255 us (T8 end, T9, T10 start): the read-back returns 0x5A with a master NACK on the last byte; T9 writes pointer 0x03,
+issues a repeated START (`evt_kind` = 010, no STOP in between) and reads the ID register 0xA5 with a final NACK; T10 begins a
+multi-byte write.*
+
+![Multi-byte write and read-back](waveforms/gtkwave_i2c_multibyte_write_readback.png)
+*225-310 us (T10): write pointer 0x00 then bytes 0xA1, 0xB2, 0xC3 (DATA, the read-only STATUS is ignored, CONTROL); STOP; then a
+repeated-START read of four registers: DATA 0xA1, STATUS 0x02 (invalid_access set), CONTROL 0xC3 and ID 0xA5, ending with a
+master NACK.*
 
 ## Known limitations
 - Standard Mode only (100 kHz); the 400 kHz mode is not implemented or tested.
