@@ -1,0 +1,8 @@
+build/
+*.out
+*.wlf
+*.asdb
+work/
+transcript
+*.vcd
+!waveforms/*.vcd

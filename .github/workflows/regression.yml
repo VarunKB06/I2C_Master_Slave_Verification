@@ -1,0 +1,131 @@
+name: I2C regression
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:          # manual run: Actions tab -> "I2C regression" -> Run workflow
+
+env:
+  SRC: >-
+    rtl/i2c_clock_gen.sv rtl/i2c_timeout_monitor.sv rtl/i2c_start_stop_detector.sv rtl/i2c_address_decoder.sv
+    rtl/i2c_register_bank.sv rtl/i2c_master.sv rtl/i2c_slave.sv
+    verification/i2c_bus_model.sv verification/i2c_monitor.sv verification/scoreboard.sv
+    verification/assertions.sv verification/coverage.sv verification/tb_i2c_system.sv
+
+jobs:
+  regression:
+    name: regression (seed ${{ matrix.seed }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [1, 2, 3]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Show simulator version
+        run: |
+          iverilog -V | head -n 1
+          vvp -V | head -n 1
+
+      - name: Prepare output directories
+        run: mkdir -p build reports waveforms
+
+      - name: Compile (Icarus, -g2012)
+        run: |
+          iverilog -g2012 -Wall -s tb_i2c_system -I verification -I verification/tests \
+            -o build/sim.vvp $SRC 2>&1 | tee reports/compile_seed${{ matrix.seed }}.log
+
+      - name: Run tb_i2c_system, all stages, seed ${{ matrix.seed }}
+        run: |
+          vvp build/sim.vvp +STAGE=0 +seed=${{ matrix.seed }} 2>&1 | tee reports/sim_seed${{ matrix.seed }}.log
+
+      - name: Check results
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          LOG=reports/sim_seed${SEED}.log
+          sed -n '/=== SUMMARY/,/=== END/p' "$LOG" | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -q "seed: ${SEED} " "$LOG"
+          grep -q "FINAL: PASS" "$LOG"
+          grep -Eq "failed tests: 0$" "$LOG"
+          grep -Eq "scoreboard errors: 0$" "$LOG"
+          grep -Eq "protocol checker failures: 0$" "$LOG"
+          if grep -Eq "SB ERROR|TB FAIL|CHECK FAIL|WATCHDOG|\] FAIL " "$LOG"; then
+            echo "error lines found in $LOG"; exit 1
+          fi
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-logs-seed-${{ matrix.seed }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+  waveform:
+    name: waveform (VCD, stage 1, seed 1)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Prepare output directories
+        run: mkdir -p build reports waveforms
+
+      - name: Compile
+        run: |
+          iverilog -g2012 -s tb_i2c_system -I verification -I verification/tests \
+            -o build/sim_wave.vvp $SRC 2>&1 | tee reports/compile_wave.log
+
+      - name: Run stage 1 with VCD dump
+        run: |
+          vvp build/sim_wave.vvp +STAGE=1 +seed=1 +vcd 2>&1 | tee reports/sim_wave_stage1.log
+          grep -q "FINAL: PASS" reports/sim_wave_stage1.log
+
+      - name: Verify VCD was written
+        if: always()
+        run: |
+          ls -l waveforms/
+          test -s waveforms/tb_i2c_system.vcd
+          mv waveforms/tb_i2c_system.vcd waveforms/tb_i2c_system_stage1_seed1.vcd
+
+      - name: Upload waveform
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waveform-stage1-seed1
+          path: waveforms/*.vcd
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload waveform job logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waveform-job-logs
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
