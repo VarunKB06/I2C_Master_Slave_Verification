@@ -16,3 +16,5 @@
   monitor reports a START/STOP only as "mid-byte" after 2 or more clocks. A START/STOP after exactly one clock is
   physically indistinguishable from the legal case and is accepted. (A first version flagged every STOP; the first CI run
   showed this as a false positive, with scoreboard and checker errors at 0.)
+- **T38 observation (CI):** after the master aborts on a stretch timeout, the slave keeps SDA low (log line `sda=0`), so a
+  system reset is the recovery. A real bus would need a bus-clear sequence (not implemented).
