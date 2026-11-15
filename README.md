@@ -5,11 +5,10 @@ stretching, timeout) with a slave register bank, an **open-drain bus model with 
 a reference-model scoreboard, a procedural protocol/timing checker, functional coverage, directed + randomized tests
 and a GitHub Actions regression (Icarus Verilog).
 
-> **Status: first draft, not yet run.** This code was written without access to a simulator. No compile result,
-> test result, coverage number or waveform exists yet. Run `bash scripts/run_all.sh` locally or the GitHub Actions
-> workflow, then replace this note and the empty results section with real output from `reports/`.
+> **Status: simulated and passing.** The full regression (32 tests) passes in **GitHub Actions with Icarus Verilog**
+> for seeds 1, 2 and 3 (results below, logs in `reports/ci_logs/`). The protocol checks are procedural, not native SVA.
 > Implemented: Standard Mode (100 kHz) timing, single master. **Not implemented:** Fast Mode, multi-master
-> arbitration, 10-bit addressing, bus-clear recovery, native SVA.
+> arbitration, 10-bit addressing, bus-clear recovery, SDA-stuck-low detection.
 
 ## I2C in one minute
 - Two wires, **SDA** (data) and **SCL** (clock), both open drain with pull-up resistors: a device either pulls the
@@ -79,8 +78,52 @@ compile error, non-zero simulator status, failed test, scoreboard error or check
 *Actions -> I2C regression -> Run workflow*.
 
 ## Results
-Not available yet: the project has not been compiled or simulated. After the first CI run, copy the summary
-(`reports/simulation_summary.txt`), coverage report and per-seed logs here.
+### GitHub Actions (Icarus Verilog, `+STAGE=0`, all 32 tests)
+| Item | seed 1 | seed 2 | seed 3 |
+|---|---|---|---|
+| Tests passed / failed | 32 / 0 | 32 / 0 | 32 / 0 |
+| Scoreboard errors | 0 | 0 | 0 |
+| Protocol checker failures | 0 | 0 | 0 |
+| Monitor protocol errors (START/STOP mid-byte) | 0 | 0 | 0 |
+| Total checks | 4,987 | 4,970 | 5,007 |
+| Transactions completed / bytes compared | 406 / 1,524 | 406 / 1,496 | 406 / 1,508 |
+| Checker evaluations | 29,420 | 28,892 | 29,102 |
+| Functional EVENT bins | 25 / 25 | 25 / 25 | 25 / 25 |
+| Functional CROSS bins | 14 / 14 | 14 / 14 | 14 / 14 |
+| Final | PASS | PASS | PASS |
+
+Source: `reports/ci_logs/sim_seed{1,2,3}.log`; seed-1 extracts in `reports/simulation_summary.txt`,
+`reports/protocol_checker_summary.txt` and `reports/functional_coverage.txt`. The stage-1 waveform job (8 tests) also passed.
+Icarus prints a harmless "no explicit time unit" warning for the RTL files (they contain no delays).
+
+Notes
+- **100 kHz timing (T31):** with the 100 kHz configuration the checker verified tLOW, tHIGH, START hold/setup, STOP setup and
+  bus-free time against the Standard Mode minima, and the measured SCL period was within 9.9-10.2 us. All other tests use a
+  faster simulation configuration (`quarter` = 10, about 0.84 us per bit) to keep runs short.
+- **Clock stretching, timeout, resets:** T35-T38 and T40-T47 passed. In T38 the log shows the documented limitation: after the
+  master aborts on a timeout the slave keeps SDA low until a system reset.
+- **History:** the first CI run had 29 failing tests caused by a false positive in the bus monitor (it counted the clock edge
+  before a STOP/repeated START as a data bit); scoreboard and checker errors were 0. The monitor was fixed and T24 was added to
+  close the last cross bin (13/14 -> 14/14).
+- Coverage is hand-written functional coverage (event and cross bins), not RTL code coverage. The error-type x recovery cross
+  is not implemented.
+
+## Waveforms (GTKWave)
+The waveform is the CI VCD [`waveforms/tb_i2c_system_stage1_seed1.vcd`](waveforms/tb_i2c_system_stage1_seed1.vcd) (stage 1,
+tests T1-T10, 0 to 310 us). Screenshots below show the same signals in each view: `scl`, `sda`, `m_sda_oe`, `m_scl_oe`,
+`s_sda_oe`, `s_scl_oe` (1 = that device pulls the line low) and the monitor's `evt_kind` / `evt_val` / `evt_nack`.
+
+![Write transaction](waveforms/gtkwave_i2c_write_txn.png)
+*T8 write, 120-145 us: START, address byte 0xA0 (0x50 + write) ACKed by the slave, register pointer 0x00, data 0x5A, STOP. The
+slave pulls SDA low during every 9th clock (ACK); SDA changes only while SCL is low except for START and STOP.*
+
+![Repeated START read](waveforms/gtkwave_i2c_repeated_start_read.png)
+*T8 read-back, 145-179 us: START, address 0xA0, pointer 0x00, repeated START (no STOP in between), address 0xA1 (read), data 0x5A
+returned by the slave, master NACK on the last byte (master releases SDA in the 9th clock), STOP.*
+
+![Address NACK](waveforms/gtkwave_i2c_address_nack.png)
+*T7, 100-109 us: address 0xA2 does not match the slave (0xA0/0xA1 are its write/read addresses), so SDA stays high in the 9th clock
+(NACK) and the master ends the transaction with STOP.*
 
 ## Known limitations
 - Standard Mode only (100 kHz); the 400 kHz mode is not implemented or tested.
