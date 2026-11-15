@@ -1,7 +1,8 @@
 # Verification plan and status
 
-**Execution status: nothing has been run.** No simulator was available when this was written. Every "Result" below is
-`not run`; replace it only with PASS/FAIL taken from `reports/` after a real run.
+**Execution status:** all 32 implemented tests passed with seeds 1, 2 and 3 in GitHub Actions (Icarus Verilog); logs in
+`reports/ci_logs/`. Rows marked "covered implicitly" / "checked in ..." are exercised by those runs with 0 scoreboard errors
+and 0 checker failures; rows marked pending or not implemented were not run.
 
 ## Environment
 Procedural SystemVerilog testbench (`verification/tb_i2c_system.sv`), open-drain bus model with pull-ups, independent
@@ -64,10 +65,8 @@ does not drive); master ACK/NACK; transaction completion. Missing or extra bus e
 | T58 | long random stress | implemented | random_tests.sv | not run |
 
 ## Coverage (hand-written, not code coverage)
-25 event bins (START, STOP, repeated START, write, read, single / multi byte, matching / non-matching address, three
-address ranges, address and data ACK/NACK, master ACK/NACK, Standard Mode, stretch, long stretch, timeout, bus stuck low,
-reset during transaction, recovery) and 14 cross bins (direction x address response, data length x direction,
-repeated START x direction, stretching x direction). Pending: error-type x recovery cross; no Fast Mode bin. Some cross
-bins may be unreachable (for example a read transaction with a NACKed address has no data length); any such bin must be
-analysed and excluded with a reason, not ignored. No percentage is claimed until a real run produces
-`reports/functional_coverage.txt`.
+25 event bins and 14 cross bins (direction x address response, data length x direction, repeated START x direction,
+stretching x direction). CI result for seeds 1, 2 and 3: **EVENT 25 / 25, CROSS 14 / 14** (`reports/functional_coverage.txt`).
+No bin was excluded. The first run reached 13 / 14 (write transaction with a repeated START); test T24 closed it.
+Not implemented: error-type x recovery cross and any Fast Mode bin. Coverage is functional; it says nothing about RTL code
+coverage.
