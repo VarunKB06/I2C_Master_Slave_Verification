@@ -1,0 +1,6 @@
+=== PROTOCOL CHECKER SUMMARY ===
+mode: PROCEDURAL checker (not native SVA)
+checker failures: 0  (evaluations: 29420)
+monitor protocol errors: 0
+min SCL low / high time seen (ps): 400000 / 440000
+=== END ===

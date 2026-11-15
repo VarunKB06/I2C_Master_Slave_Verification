@@ -1,0 +1,43 @@
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] transaction: START
+  [HIT ] transaction: STOP
+  [HIT ] transaction: repeated START
+  [HIT ] transaction: write
+  [HIT ] transaction: read
+  [HIT ] transfer: single data byte
+  [HIT ] transfer: multiple data bytes
+  [HIT ] address: matching
+  [HIT ] address: non-matching
+  [HIT ] address value: 0x00-0x1F
+  [HIT ] address value: 0x20-0x5F
+  [HIT ] address value: 0x60-0x7F
+  [HIT ] ack: address ACK
+  [HIT ] ack: address NACK
+  [HIT ] ack: slave ACKs write data
+  [HIT ] ack: slave NACKs write data
+  [HIT ] ack: master ACK after read
+  [HIT ] ack: master NACK after read
+  [HIT ] timing: Standard Mode 100 kHz
+  [HIT ] timing: clock stretching
+  [HIT ] timing: long clock stretching
+  [HIT ] error: master timeout
+  [HIT ] error: bus stuck low
+  [HIT ] error: reset during transaction
+  [HIT ] error: recovery (txn after timeout/reset)
+EVENT BINS COVERED: 25 / 25
+-- CROSS BINS --
+ X1 direction x address response
+   write: ACK:HIT  NACK:HIT 
+   read : ACK:HIT  NACK:HIT 
+ X2 data length x direction (w/r)
+   1 byte : w:HIT  r:HIT 
+   2 bytes: w:HIT  r:HIT 
+   >2     : w:HIT  r:HIT 
+ X3 repeated START x direction of the transaction
+   write: HIT   read: HIT 
+ X4 clock stretching x direction
+   write: HIT   read: HIT 
+CROSS BINS COVERED: 14 / 14
+NOT IMPLEMENTED: error-type x recovery cross, Fast Mode bins
+=== END ===

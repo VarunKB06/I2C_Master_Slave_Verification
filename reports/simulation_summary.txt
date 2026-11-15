@@ -1,0 +1,13 @@
+=== SUMMARY ===
+seed: 1   stage: 0
+total tests: 32
+passed tests: 32
+failed tests: 0
+total checks: 4987 (tb 1002 + scoreboard 3985)
+transactions completed: 406, bytes compared: 1524
+protocol checker failures: 0
+scoreboard errors: 0
+functional EVENT bins covered: 25 / 25
+functional CROSS bins covered: 14 / 14
+FINAL: PASS
+=== END ===
