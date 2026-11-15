@@ -1,0 +1,129 @@
+=== tb_i2c_system: stage=0 seed=2 ===
+[T1] START initial reset and idle state
+[T1] PASS  initial reset and idle state
+[T2] START bus idle: no events, lines high
+[T2] PASS  bus idle: no events, lines high
+[T3] START START and STOP generation
+[T3] PASS  START and STOP generation
+[T5] START address transmission + ACK (T5/T6)
+[T5] PASS  address transmission + ACK (T5/T6)
+[T7] START address NACK
+[T7] PASS  address NACK
+[T8] START one-byte write
+[T8] PASS  one-byte write
+[T9] START one-byte read (ID register)
+[T9] PASS  one-byte read (ID register)
+[T10] START multiple-byte write + read back
+[T10] PASS  multiple-byte write + read back
+[T13] START SDA stability / protocol cleanliness
+[T13] PASS  SDA stability / protocol cleanliness
+[T15] START MSB-first data patterns
+[T15] PASS  MSB-first data patterns
+[T19] START address mismatch leaves slave unchanged
+[T19] PASS  address mismatch leaves slave unchanged
+[T21] START multiple-byte read (T21/T25/T26)
+[T21] PASS  multiple-byte read (T21/T25/T26)
+[T22] START multi-byte write, RO regs ignored
+[T22] PASS  multi-byte write, RO regs ignored
+[T23] START repeated START (write pointer, read)
+[T23] PASS  repeated START (write pointer, read)
+[T24] START repeated START, write then write
+[T24] PASS  repeated START, write then write
+[T27] START slave NACK on data
+[T27] PASS  slave NACK on data
+[T28] START transaction termination without data
+[T28] PASS  transaction termination without data
+[T29] START back-to-back transactions
+[T29] PASS  back-to-back transactions
+[T30] START different slave addresses
+[T30] PASS  different slave addresses
+[T31] START Standard Mode 100 kHz timing
+[T31] PASS  Standard Mode 100 kHz timing
+[T35] START clock stretching (short)
+[T35] PASS  clock stretching (short)
+[T36] START long clock stretching
+[T36] PASS  long clock stretching
+[T37] START stretch release: normal speed again
+[T37] PASS  stretch release: normal speed again
+[T44] START SCL held low: timeout, then recovery
+[T44] PASS  SCL held low: timeout, then recovery
+[T38] START stretch longer than timeout + reset
+   note: after the abort the slave still drives SDA low (sda=0); recovered by reset
+[T38] PASS  stretch longer than timeout + reset
+[T40] START reset during a write transaction
+[T40] PASS  reset during a write transaction
+[T47] START reset during a read transaction
+[T47] PASS  reset during a read transaction
+[T51] START random addresses and data
+[T51] PASS  random addresses and data
+[T55] START random ACK/NACK behaviour
+[T55] PASS  random ACK/NACK behaviour
+[T56] START random clock stretching
+[T56] PASS  random clock stretching
+[T57] START back-to-back random transactions
+[T57] PASS  back-to-back random transactions
+[T58] START long random protocol stress
+[T58] PASS  long random protocol stress
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] transaction: START
+  [HIT ] transaction: STOP
+  [HIT ] transaction: repeated START
+  [HIT ] transaction: write
+  [HIT ] transaction: read
+  [HIT ] transfer: single data byte
+  [HIT ] transfer: multiple data bytes
+  [HIT ] address: matching
+  [HIT ] address: non-matching
+  [HIT ] address value: 0x00-0x1F
+  [HIT ] address value: 0x20-0x5F
+  [HIT ] address value: 0x60-0x7F
+  [HIT ] ack: address ACK
+  [HIT ] ack: address NACK
+  [HIT ] ack: slave ACKs write data
+  [HIT ] ack: slave NACKs write data
+  [HIT ] ack: master ACK after read
+  [HIT ] ack: master NACK after read
+  [HIT ] timing: Standard Mode 100 kHz
+  [HIT ] timing: clock stretching
+  [HIT ] timing: long clock stretching
+  [HIT ] error: master timeout
+  [HIT ] error: bus stuck low
+  [HIT ] error: reset during transaction
+  [HIT ] error: recovery (txn after timeout/reset)
+EVENT BINS COVERED: 25 / 25
+-- CROSS BINS --
+ X1 direction x address response
+   write: ACK:HIT  NACK:HIT 
+   read : ACK:HIT  NACK:HIT 
+ X2 data length x direction (w/r)
+   1 byte : w:HIT  r:HIT 
+   2 bytes: w:HIT  r:HIT 
+   >2     : w:HIT  r:HIT 
+ X3 repeated START x direction of the transaction
+   write: HIT   read: HIT 
+ X4 clock stretching x direction
+   write: HIT   read: HIT 
+CROSS BINS COVERED: 14 / 14
+NOT IMPLEMENTED: error-type x recovery cross, Fast Mode bins
+=== END ===
+=== PROTOCOL CHECKER SUMMARY ===
+mode: PROCEDURAL checker (not native SVA)
+checker failures: 0  (evaluations: 28892)
+monitor protocol errors: 0
+min SCL low / high time seen (ps): 400000 / 440000
+=== END ===
+=== SUMMARY ===
+seed: 2   stage: 0
+total tests: 32
+passed tests: 32
+failed tests: 0
+total checks: 4970 (tb 1049 + scoreboard 3921)
+transactions completed: 406, bytes compared: 1496
+protocol checker failures: 0
+scoreboard errors: 0
+functional EVENT bins covered: 25 / 25
+functional CROSS bins covered: 14 / 14
+FINAL: PASS
+=== END ===
+verification/tb_i2c_system.sv:178: $finish called at 14072570000 (1ps)

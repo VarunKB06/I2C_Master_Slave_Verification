@@ -1,0 +1,10 @@
+warning: Some design elements have no explicit time unit and/or
+       : time precision. This may cause confusing timing results.
+       : Affected design elements are:
+       :   -- module i2c_address_decoder declared here: rtl/i2c_address_decoder.sv:1
+       :   -- module i2c_clock_gen declared here: rtl/i2c_clock_gen.sv:5
+       :   -- module i2c_master declared here: rtl/i2c_master.sv:11
+       :   -- module i2c_register_bank declared here: rtl/i2c_register_bank.sv:8
+       :   -- module i2c_slave declared here: rtl/i2c_slave.sv:10
+       :   -- module i2c_start_stop_detector declared here: rtl/i2c_start_stop_detector.sv:2
+       :   -- module i2c_timeout_monitor declared here: rtl/i2c_timeout_monitor.sv:2
