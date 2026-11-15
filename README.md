@@ -59,7 +59,7 @@ persists across transactions. Writes to read-only/unknown registers are ignored 
 - **Protocol checker** (`assertions.sv`): *procedural* checks (not SVA) for tLOW, tHIGH, START hold/setup, STOP setup,
   bus-free time (enabled in the 100 kHz test) and stretch measurement; the monitor flags START/STOP in the middle of a byte.
 - **Coverage** (`coverage.sv`): hand-written event and cross bins (not code coverage).
-- **Tests** (31): Stage 1 basic, Stage 2 protocol + advanced transactions, Stage 3 timing / stretching / errors / random.
+- **Tests** (32): Stage 1 basic, Stage 2 protocol + advanced transactions, Stage 3 timing / stretching / errors / random.
   Matrix with status: [docs/verification_plan.md](docs/verification_plan.md).
 
 ## Run
