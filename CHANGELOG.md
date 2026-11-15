@@ -1,5 +1,8 @@
 # Change log
 
+## Waveform screenshots
+- Added four GTKWave screenshots of the CI VCD under `waveforms/` and referenced them in the README.
+
 ## First passing CI (32 tests, seeds 1-3)
 - Results, logs and report extracts committed under `reports/`; stage-1 VCD under `waveforms/`.
 - README results, waveform section, verification plan and notes updated from the real logs.
