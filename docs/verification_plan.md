@@ -33,7 +33,8 @@ does not drive); master ACK/NACK; transaction completion. Missing or extra bus e
 | T20 | data byte sequence | covered by scoreboard in every test | - | not run |
 | T21 | multiple-byte read | implemented | protocol_tests.sv | not run |
 | T22 | multiple-byte write | implemented | protocol_tests.sv | not run |
-| T23/T24 | repeated START, write then read | implemented (T23) | protocol_tests.sv | not run |
+| T23 | repeated START, write pointer then read | implemented | protocol_tests.sv | not run |
+| T24 | repeated START, write then write | implemented | protocol_tests.sv | not run |
 | T25/T26 | master ACK / final NACK | implemented (in T21) | protocol_tests.sv | not run |
 | T27 | slave NACK | implemented | protocol_tests.sv | not run |
 | T28 | transaction termination | implemented | protocol_tests.sv | not run |
