@@ -53,6 +53,18 @@ task run_protocol_tests;
         check(rbuf[0] === 8'hC6, "data read after repeated START");
         end_test;
 
+        begin_test(24, "repeated START, write then write");
+        sys_reset;
+        cmd(1, 0, 1, 0, 0, {slave_addr, 1'b0});
+        cmd(0, 0, 1, 0, 0, 8'h00);                   // pointer = DATA
+        cmd(1, 0, 1, 0, 0, {slave_addr, 1'b0});      // repeated START, write direction again
+        cmd(0, 0, 1, 0, 0, 8'h02);                   // new pointer = CONTROL
+        cmd(0, 1, 1, 0, 0, 8'hB7);                   // data, STOP
+        check(sum_rstart === 1'b1 && sum_rw === 1'b0, "write transaction containing a repeated START");
+        reg_read(slave_addr, 8'h02, 1);
+        check(rbuf[0] === 8'hB7, "data written after the repeated START");
+        end_test;
+
         begin_test(27, "slave NACK on data");
         sys_reset;
         reg_write(slave_addr, 8'h02, 8'h31);
