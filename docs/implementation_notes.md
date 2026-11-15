@@ -12,3 +12,7 @@
 - Timing numbers are derived from the tick structure (see architecture.md) and are only claimed once the checker passes in CI.
 - Testbench conventions inherited from earlier projects: `timescale` in every verification file, no SystemVerilog strings
   in tasks, packed message vectors, explicit array bounds, waveform only with `+vcd`.
+- **Monitor mid-byte check:** the SCL rising edge before a legal STOP / repeated START looks like a first data clock, so the
+  monitor reports a START/STOP only as "mid-byte" after 2 or more clocks. A START/STOP after exactly one clock is
+  physically indistinguishable from the legal case and is accepted. (A first version flagged every STOP; the first CI run
+  showed this as a false positive, with scoreboard and checker errors at 0.)
