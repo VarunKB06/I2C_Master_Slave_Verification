@@ -1,0 +1,81 @@
+VCD info: dumpfile waveforms/tb_i2c_system.vcd opened for output.
+=== tb_i2c_system: stage=1 seed=1 ===
+[T1] START initial reset and idle state
+[T1] PASS  initial reset and idle state
+[T2] START bus idle: no events, lines high
+[T2] PASS  bus idle: no events, lines high
+[T3] START START and STOP generation
+[T3] PASS  START and STOP generation
+[T5] START address transmission + ACK (T5/T6)
+[T5] PASS  address transmission + ACK (T5/T6)
+[T7] START address NACK
+[T7] PASS  address NACK
+[T8] START one-byte write
+[T8] PASS  one-byte write
+[T9] START one-byte read (ID register)
+[T9] PASS  one-byte read (ID register)
+[T10] START multiple-byte write + read back
+[T10] PASS  multiple-byte write + read back
+=== FUNCTIONAL COVERAGE (hand-written bins; not code coverage, not covergroups) ===
+-- EVENT BINS --
+  [HIT ] transaction: START
+  [HIT ] transaction: STOP
+  [HIT ] transaction: repeated START
+  [HIT ] transaction: write
+  [HIT ] transaction: read
+  [HIT ] transfer: single data byte
+  [HIT ] transfer: multiple data bytes
+  [HIT ] address: matching
+  [HIT ] address: non-matching
+  [MISS] address value: 0x00-0x1F
+  [HIT ] address value: 0x20-0x5F
+  [HIT ] address value: 0x60-0x7F
+  [HIT ] ack: address ACK
+  [HIT ] ack: address NACK
+  [HIT ] ack: slave ACKs write data
+  [MISS] ack: slave NACKs write data
+  [HIT ] ack: master ACK after read
+  [HIT ] ack: master NACK after read
+  [MISS] timing: Standard Mode 100 kHz
+  [MISS] timing: clock stretching
+  [MISS] timing: long clock stretching
+  [MISS] error: master timeout
+  [MISS] error: bus stuck low
+  [MISS] error: reset during transaction
+  [MISS] error: recovery (txn after timeout/reset)
+EVENT BINS COVERED: 16 / 25
+-- CROSS BINS --
+ X1 direction x address response
+   write: ACK:HIT  NACK:HIT 
+   read : ACK:HIT  NACK:HIT 
+ X2 data length x direction (w/r)
+   1 byte : w:MISS r:HIT 
+   2 bytes: w:HIT  r:HIT 
+   >2     : w:HIT  r:HIT 
+ X3 repeated START x direction of the transaction
+   write: MISS  read: HIT 
+ X4 clock stretching x direction
+   write: MISS  read: MISS
+CROSS BINS COVERED: 10 / 14
+NOT IMPLEMENTED: error-type x recovery cross, Fast Mode bins
+=== END ===
+=== PROTOCOL CHECKER SUMMARY ===
+mode: PROCEDURAL checker (not native SVA)
+checker failures: 0  (evaluations: 565)
+monitor protocol errors: 0
+min SCL low / high time seen (ps): 400000 / 440000
+=== END ===
+=== SUMMARY ===
+seed: 1   stage: 1
+total tests: 8
+passed tests: 8
+failed tests: 0
+total checks: 120 (tb 39 + scoreboard 81)
+transactions completed: 10, bytes compared: 29
+protocol checker failures: 0
+scoreboard errors: 0
+functional EVENT bins covered: 16 / 25
+functional CROSS bins covered: 10 / 14
+FINAL: PASS
+=== END ===
+verification/tb_i2c_system.sv:178: $finish called at 310750000 (1ps)
